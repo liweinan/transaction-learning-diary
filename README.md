@@ -1,6 +1,26 @@
 ## PostgreSQL JDBC
 
-   
+	public class PGXAConnection extends PGPooledConnection implements XAConnection, XAResource {
+
+		public int prepare(Xid xid) throws XAException {
+		    stmt.executeUpdate("PREPARE TRANSACTION '" + s + "'");
+		}
+
+		public void rollback(Xid xid) throws XAException {
+		    stmt.executeUpdate("ROLLBACK PREPARED '" + s + "'");
+		}
+
+		public void commit(Xid xid, boolean onePhase) throws XAException {
+		    if (onePhase)
+		        commitOnePhase(xid);
+		    else
+		        commitPrepared(xid);
+		}
+
+		private void commitPrepared(Xid xid) throws XAException {
+		    stmt.executeUpdate("COMMIT PREPARED '" + s + "'");
+		}
+	}
 
 ---
 
@@ -32,6 +52,7 @@ EntityManagerFactory is org.hibernate.ejb.EntityManagerFactoryImpl.
     userTransaction.commit();
 
 ---
+
 
 
 
