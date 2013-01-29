@@ -39,8 +39,7 @@
     @Inject
     private UserTransaction userTransaction;
 
-In AS7, UserTransaction is org.jboss.tm.usertx.client.ServerVMClientUserTransaction.
-EntityManagerFactory is org.hibernate.ejb.EntityManagerFactoryImpl.
+In AS7, UserTransaction is org.jboss.tm.usertx.client.ServerVMClientUserTransaction. EntityManagerFactory is org.hibernate.ejb.EntityManagerFactoryImpl.
 
 ---
 
@@ -53,6 +52,53 @@ EntityManagerFactory is org.hibernate.ejb.EntityManagerFactoryImpl.
 
 ---
 
+* UserTransaction
+* TransactionManager
+* Transaction
+* XAResource
 
+* XAConnection
+
+XAConnection is controller by XAResource.
+
+---
+
+* Transaction.enlistResource(XAResource)
+
+* Transaction.delistResource(XAResource)
+
+* XAConnection.getXAResource()
+
+Retrieves an XAResource object that the transaction manager will use to manage this XAConnection object's participation in a distributed transaction.
+
+TransactionManager <-> XAResource <-> XAConnection
+
+---
+
+What's the relationship between TransactionManager, Transaction and UserTransaction?
+
+Transaction and UserTransaction are similar. In a managed environment, it's preferred to use UserTransaction provided by application server. It's not a preferred way to use TransactionManager to getTransaction(). The TransactionManager interface is used by application server design usually.
+
+TransactionManager can be used to control transaction:
+
+	tm = (TransactionManager)ctx.lookup("javax.transaction.TransactionManager");                             
+	tx = (UserTransaction)ctx.lookup("javax.transaction.UserTransaction");
+	tx.begin();                                     
+	...
+	transaction = tm.suspend();
+	doNestedTransaction();                   
+	tm.resume(transaction);
+	...
+	tx.commit();             
+	
+---
+
+Good article to read:
+
+* http://blog.sina.com.cn/s/blog_661a3fce0100mshi.html
+* http://blog.sina.com.cn/s/blog_661a3fce0100msjb.html
+* http://blog.sina.com.cn/s/blog_661a3fce0100msjv.html
+
+---
 
 
