@@ -101,4 +101,41 @@ Good article to read:
 
 ---
 
+PostgreSQL JDBC Source Code: http://jdbc.postgresql.org/download.html
+
+---
+
+XADataSourceTest.java in PostgreSQL JDBC Source Code:
+
+    private XAConnection xaconn;
+    private XAResource xaRes;
+    private Connection conn;
+
+    protected void setUp() throws Exception {
+	xaconn = _ds.getXAConnection();
+	xaRes = xaconn.getXAResource();
+	conn = xaconn.getConnection();
+    }
+
+    public void testTwoPhaseCommit() throws Exception {
+        Xid xid = new CustomXid(1);
+        xaRes.start(xid, XAResource.TMNOFLAGS);
+        conn.createStatement().executeQuery("SELECT * FROM testxa1");
+        xaRes.end(xid, XAResource.TMSUCCESS);
+        xaRes.prepare(xid);
+        xaRes.commit(xid, false);
+    }
+
+    public void testCloseBeforeCommit() throws Exception {
+        Xid xid = new CustomXid(5);
+        xaRes.start(xid, XAResource.TMNOFLAGS);
+        assertEquals(1, conn.createStatement().executeUpdate("INSERT INTO testxa1 VALUES (1)"));
+        conn.close();
+        xaRes.end(xid, XAResource.TMSUCCESS);
+        xaRes.commit(xid, true);
+
+        ResultSet rs = _conn.createStatement().executeQuery("SELECT foo FROM testxa1");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+    }
 
